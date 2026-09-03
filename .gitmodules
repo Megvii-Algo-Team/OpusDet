@@ -1,0 +1,13 @@
+[submodule "third_party/mmcv"]
+	path = third_party/mmcv
+	url = https://github.com/open-mmlab/mmcv.git
+	branch = 2.x
+[submodule "third_party/mmengine"]
+	path = third_party/mmengine
+	url = https://github.com/open-mmlab/mmengine.git
+[submodule "third_party/mmdetection"]
+	path = third_party/mmdetection
+	url = https://github.com/open-mmlab/mmdetection.git
+[submodule "third_party/lvis-api"]
+	path = third_party/lvis-api
+	url = https://github.com/lvis-dataset/lvis-api.git

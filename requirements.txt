@@ -1,0 +1,7 @@
+torch==2.7.0
+torchvision==0.22.0
+transformers==5.5.0
+huggingface_hub==1.24.0
+fairscale
+# OpenMMLab stack: install from third_party/ (see README)
+# mmcv v2.2.0, mmengine v0.11.0rc2, mmdet v3.3.0, lvis-api 0.5.3

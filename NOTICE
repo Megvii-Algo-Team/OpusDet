@@ -1,0 +1,60 @@
+OPUS
+Copyright (c) 2026 Megvii-Algo-Team. All rights reserved.
+
+This product includes software developed by third parties, listed below.
+See the corresponding paths or URLs for full license texts.
+
+================================================================================
+OpenMMLab stack (Apache License 2.0)
+================================================================================
+
+MMDetection
+  Location: third_party/mmdetection/
+  Copyright: 2018-2023 OpenMMLab
+  License: Apache License 2.0
+  https://github.com/open-mmlab/mmdetection
+
+MMCV
+  Location: third_party/mmcv/
+  Copyright: OpenMMLab
+  License: Apache License 2.0
+  https://github.com/open-mmlab/mmcv
+
+MMEngine
+  Location: third_party/mmengine/
+  Copyright: 2018-2023 OpenMMLab
+  License: Apache License 2.0
+  https://github.com/open-mmlab/mmengine
+
+================================================================================
+Evaluation APIs
+================================================================================
+
+LVIS API
+  Location: third_party/lvis-api/
+  Copyright (c) 2019, Agrim Gupta and Ross Girshick
+  License: BSD 2-Clause
+  https://github.com/lvis-dataset/lvis-api
+
+================================================================================
+Bundled Hugging Face configs (no model weights)
+================================================================================
+
+OpenAI CLIP (ViT-B/32 config and tokenizer)
+  Location: hf_configs/openai/clip-vit-base-patch32/
+  License: MIT
+  https://github.com/openai/CLIP
+  https://huggingface.co/openai/clip-vit-base-patch32
+
+Meta DINOv3 ConvNeXt-B (config only)
+  Location: hf_configs/facebook/dinov3-convnext-base-pretrain-lvd1689m/
+  License: see Hugging Face model card
+  https://huggingface.co/facebook/dinov3-convnext-base-pretrain-lvd1689m
+
+================================================================================
+Related work (not included as source code)
+================================================================================
+
+T-Rex2 unified visual-prompt detection inspired the design of related modules
+in this project. OPUS does not ship T-Rex2 source code; any TRex2-related code
+here is an independent re-implementation. See README Acknowledgement.
