@@ -3,16 +3,17 @@
 
 Adapted from MMDetection ``tools/dataset_converters/crowdhuman2coco.py``.
 
-Expects under ``--input``::
+Expects under ``--input`` (ODGT only; images are not read)::
 
     annotation_train.odgt
     annotation_val.odgt
-    train/Images/{ID}.jpg
-    val/Images/{ID}.jpg
+
+Training images are separate: place JPEGs under ``data/crowdhuman/Images/``
+(raw download layout: ``train/Images/{ID}.jpg``).
 
 Writes ``crowdhuman_train.json`` / ``crowdhuman_val.json`` under ``--output``,
-with ``file_name`` as ``Images/{ID}.jpg`` (use a symlink
-``data/crowdhuman/Images -> train/Images`` for training).
+with ``file_name`` as ``{ID}.jpg``. OPUS configs use ``data_prefix=dict(img='Images/')``;
+width and height come from ODGT ``width`` / ``height`` fields.
 
 Example::
 
@@ -30,7 +31,6 @@ import os.path as osp
 from collections import defaultdict
 
 import mmengine
-from PIL import Image
 from tqdm import tqdm
 
 
@@ -41,7 +41,7 @@ def parse_args():
         '-i',
         '--input',
         required=True,
-        help='root directory of CrowdHuman (odgt + train/ val/ Images)',
+        help='root directory containing annotation_train.odgt and annotation_val.odgt',
     )
     parser.add_argument(
         '-o',
@@ -74,9 +74,11 @@ def convert_crowdhuman(ann_dir, save_dir, mode='train'):
 
     data_infos = load_odgt(osp.join(ann_dir, f'annotation_{mode}.odgt'))
     for data_info in tqdm(data_infos, desc=f'CrowdHuman {mode}'):
-        img_name = osp.join('Images', f"{data_info['ID']}.jpg")
-        img = Image.open(osp.join(ann_dir, mode, img_name))
-        width, height = img.size[:2]
+        img_name = f"{data_info['ID']}.jpg"
+        width, height = data_info['width'], data_info['height']
+        # img_name = osp.join('Images', f"{data_info['ID']}.jpg")
+        # img = Image.open(osp.join(ann_dir, img_name))
+        # width, height = img.size[:2]
         image = dict(
             file_name=img_name,
             height=height,

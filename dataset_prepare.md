@@ -1,31 +1,13 @@
 # OPUS Dataset Preparation
 
-Configs expect the dataset tree under `data/` (or `ROOT_DATA_DIR`).
+Put datasets under `data/` (or set `ROOT_DATA_DIR=/path/to/datasets`). You can also edit `root_data_dir` in dataset configs under [`configs/datasets/`](configs/datasets/).
 
-```bash
-export ROOT_DATA_DIR=/path/to/datasets   # optional; default is data/
-```
-
-Also editable in [`640_640.py`](configs/datasets/640_640.py)
-(and LVIS / ODinW inherit `_base_.root_data_dir`).
-
-Official MM-GDINO prepare docs (download / convert):
+Download / convert steps for shared datasets follow MM-GDINO docs:
 
 - [dataset_prepare.md](third_party/mmdetection/configs/mm_grounding_dino/dataset_prepare.md)
 - [dataset_prepare_zh-CN.md](third_party/mmdetection/configs/mm_grounding_dino/dataset_prepare_zh-CN.md)
 
-Dataset config files:
-
-| File | Used by |
-|------|---------|
-| [`640_640.py`](configs/datasets/640_640.py) | OPUS ConvNeXt-B |
-
-| Config family | Datasets |
-|---------------|----------|
-| `*_pretrain_o365` | Objects365 v1 (+ COCO val) |
-| `*_o365_goldg` | Objects365 v1 + Flickr30k + GQA (+ COCO val) |
-
-Legend in layouts: **raw** = downloaded original, **mid** = converter intermediate, **used** = path read by OPUS configs.
+Legend: **raw** = original download, **mid** = converter output, **used** = path read by configs.
 
 ---
 
@@ -64,9 +46,6 @@ python tools/dataset_converters/goldg2odvg.py \
 
 python tools/dataset_converters/merge_odvg_same_image.py --dataset flickr30k
 # → flickr_30k_vg.json
-
-# OPUS data_prefix is images/; MM-GDINO uses flickr30k_images/
-ln -sfn flickr30k_images data/flickr30k_entities/images
 ```
 
 ```text
@@ -74,9 +53,8 @@ data/flickr30k_entities/
 ├── final_flickr_separateGT_train.json       # raw (mdetr ann)
 ├── final_flickr_separateGT_train_vg.json    # mid (goldg2odvg)
 ├── flickr_30k_vg.json                       # used (merge_odvg_same_image)
-├── flickr30k_images/                        # raw images (MM-GDINO name)
-│   └── *.jpg
-└── images/ -> flickr30k_images              # used (symlink)
+└── images/                                  # used (MM-GDINO: flickr30k_images/)
+    └── *.jpg
 ```
 
 ---
@@ -106,7 +84,7 @@ data/gqa/
 
 ## 4. CrowdHuman
 
-Convert ODGT → COCO with [`crowdhuman2coco.py`](tools/dataset_converters/crowdhuman2coco.py) (from MMDet crowdhuman2coco). Currently commented out in `640_640.py`.
+Convert ODGT → COCO with [`crowdhuman2coco.py`](tools/dataset_converters/crowdhuman2coco.py) (from MMDet crowdhuman2coco).
 
 Download CrowdHuman, place raw anns and split image folders under `data/crowdhuman/`, then:
 
@@ -115,12 +93,11 @@ python tools/dataset_converters/crowdhuman2coco.py \
   -i data/crowdhuman \
   -o data/crowdhuman/annotations
 # → annotations/crowdhuman_train.json, crowdhuman_val.json
-
-# OPUS data_prefix is Images/ (train images)
-ln -sfn train/Images data/crowdhuman/Images
 ```
 
-The converter expects raw layout `train/Images/{ID}.jpg` and writes `file_name` as `Images/{ID}.jpg`.
+The converter expects raw layout `train/Images/{ID}.jpg` and writes `file_name`
+as `{ID}.jpg` (basename). OPUS `data_prefix` is `Images/`, so used images are
+under `data/crowdhuman/Images/` (raw: `train/Images/`).
 
 ```text
 data/crowdhuman/
@@ -134,14 +111,15 @@ data/crowdhuman/
 ├── annotations/
 │   ├── crowdhuman_train.json          # used (crowdhuman2coco)
 │   └── crowdhuman_val.json            # mid / optional
-└── Images/ -> train/Images            # used (symlink)
+└── Images/                            # used (raw: train/Images/)
+    └── *.jpg
 ```
 
 ---
 
 ## 5. HierText
 
-Official `train.jsonl` is hierarchical (paragraphs/lines/words), **not** COCO. Convert word-level boxes with [`hiertext2coco.py`](tools/dataset_converters/hiertext2coco.py). Currently commented out in `640_640.py`.
+Official `train.jsonl` is hierarchical (paragraphs/lines/words), **not** COCO. Convert word-level boxes with [`hiertext2coco.py`](tools/dataset_converters/hiertext2coco.py).
 
 ```bash
 # raw from https://github.com/google-research-datasets/hiertext (gt/*.jsonl.gz)
@@ -169,36 +147,29 @@ data/hiertext/
 
 ## 6. OpenImages v6 (OIv6)
 
-Follow MM-GDINO § OpenImages v6 (`openimages2odvg.py`). Currently commented out in `640_640.py`.
-
-OPUS uses `data/open_image/` (MM-GDINO docs use `data/OpenImages/`; symlink if needed). Converter writes under the annotations dir; OPUS `data_prefix` is `images/`.
+Follow MM-GDINO § OpenImages v6 (`openimages2odvg.py`).
 
 ```bash
 python tools/dataset_converters/openimages2odvg.py data/open_image/annotations
 # → oidv6-train-annotations_od.json + openimages_label_map.json
-
-# if images live under OpenImages/train/ (MM-GDINO layout):
-ln -sfn OpenImages/train data/open_image/images
 ```
 
 ```text
-data/open_image/
+data/open_image/                             # (MM-GDINO: data/OpenImages/)
 ├── annotations/
 │   ├── oidv6-train-annotations-bbox.csv     # raw
 │   ├── class-descriptions-boxable.csv       # raw
 │   ├── oidv6-train-annotations_od.json      # used (openimages2odvg)
 │   └── openimages_label_map.json            # used
-├── OpenImages/                              # raw images (optional MM-GDINO name)
-│   └── train/
-│       └── *.jpg
-└── images/ -> OpenImages/train              # used (symlink)
+└── images/                                  # used (MM-GDINO: OpenImages/train/)
+    └── *.jpg
 ```
 
 ---
 
 ## 7. V3Det
 
-Follow MM-GDINO § V3Det (`coco2odvg.py -d v3det`). Currently commented out in `640_640.py`.
+Follow MM-GDINO § V3Det (`coco2odvg.py -d v3det`).
 
 ```bash
 python tools/dataset_converters/coco2odvg.py \
@@ -292,28 +263,12 @@ data/odinw/
 
 ---
 
-# TODO (commented out in configs)
+## 11. Additional pretrain datasets
 
-Docs / converters not finalized; still commented in `640_640.py`.
-
-### Bamboo / BambooCLS
-
-```text
-data/bamboo-1M/     # TODO: raw / mid / used
-data/bamboo-cls/    # TODO
-```
-
-### CC3M
-
-```text
-data/cc3m/          # TODO
-```
-
-### SA-1B
-
-```text
-data/sa-1b/         # TODO
-```
+- Bamboo-1M (`bamboo1M_dataset`)
+- BambooCLS (`BambooCLS_3m_sampled_dataset`)
+- CC3M (`cc3m_dataset`)
+- SA-1B (`sa_1b_3m_sampled_dataset`)
 
 ---
 
@@ -335,8 +290,7 @@ OPUS/
 │   │   ├── final_flickr_separateGT_train.json      # raw
 │   │   ├── final_flickr_separateGT_train_vg.json   # mid
 │   │   ├── flickr_30k_vg.json                      # used
-│   │   ├── flickr30k_images/
-│   │   └── images/ -> flickr30k_images
+│   │   └── images/                                 # used (MM-GDINO: flickr30k_images/)
 │   ├── gqa/
 │   │   ├── final_mixed_train_no_coco.json          # raw
 │   │   ├── final_mixed_train_no_coco_vg.json       # mid
@@ -350,27 +304,30 @@ OPUS/
 │   │   ├── annotations/
 │   │   │   ├── crowdhuman_train.json               # used
 │   │   │   └── crowdhuman_val.json
-│   │   └── Images/ -> train/Images
+│   │   └── Images/                                 # used (raw: train/Images/)
 │   ├── hiertext/
 │   │   ├── annotations/
 │   │   │   ├── train.jsonl.gz                      # raw
 │   │   │   ├── train.jsonl                         # mid
 │   │   │   └── train.json                          # used (hiertext2coco)
 │   │   └── train/
-│   ├── open_image/
+│   ├── open_image/                                 # (MM-GDINO: OpenImages/)
 │   │   ├── annotations/
 │   │   │   ├── oidv6-train-annotations-bbox.csv     # raw
 │   │   │   ├── class-descriptions-boxable.csv       # raw
 │   │   │   ├── oidv6-train-annotations_od.json      # used
 │   │   │   └── openimages_label_map.json            # used
-│   │   ├── OpenImages/train/
-│   │   └── images/ -> OpenImages/train
+│   │   └── images/                                  # used (MM-GDINO: OpenImages/train/)
 │   ├── v3det/
 │   │   ├── annotations/
 │   │   │   ├── v3det_2023_v1_train.json             # raw
 │   │   │   ├── v3det_2023_v1_train_od.json          # used
 │   │   │   └── v3det_2023_v1_label_map.json         # used
 │   │   └── images/
+│   ├── bamboo-1M/
+│   ├── bamboo-cls/
+│   ├── cc3m/
+│   ├── sa-1b/
 │   # ---- eval ----
 │   ├── coco/
 │   │   ├── annotations/
@@ -383,10 +340,5 @@ OPUS/
 │   │   │   └── lvis_v1_minival_inserted_image_name.json  # used (mini-LVIS eval)
 │   │   ├── train2017/
 │   │   └── val2017/
-│   ├── odinw/
-│   # ---- TODO ----
-│   ├── bamboo-1M/
-│   ├── bamboo-cls/
-│   ├── cc3m/
-│   └── sa-1b/
+│   └── odinw/
 ```
